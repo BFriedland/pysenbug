@@ -1,26 +1,29 @@
 
 from random import random
 from functools import wraps
-import sys
 
 
 class Pysenbugger(object):
 
     def __init__(self, unbugged_function, *bug_args, **bug_kwargs):
+        """ Initialize a Pysenbugger instance for managing state related
+        to pysenbugs.
+
+        Pysenbugger instances may be created with custom probability functions.
+        - These functions may optionally accept `prob_args` and `prob_kwargs`.
+        - The function should return a boolean when called.
+        - If the return value of calling `probability_function` is True, the
+        function decorated by `pysenbug` will return this instance's
+        `return_value` attribute; if False, it will act normally.
+        """
         self.unbugged_function = unbugged_function
         self.chance = 0.5
         self.return_value = None
         self.prob_args = []
         self.prob_kwargs = {}
-
-        # pysenbugs may be created with custom probability functions.
-        # This function may optionally accept prob_args and prob_kwargs.
-        # The function should return a boolean when called.
-        # If the return value of self.probability_function is True, the
-        # function decorated by pysenbug will return self.return_value;
-        # if False, it will act normally.
         self.probability_function = self.default_probability_function
 
+        # This permits optionally overwriting any Pysenbugger attribute.
         for each_key in bug_kwargs:
             self.__dict__[each_key] = bug_kwargs[each_key]
 
@@ -40,9 +43,17 @@ class Pysenbugger(object):
 # Reference:
 #     https://www.stackoverflow.com/17119145/python-decorator-optional-argument
 
-# This outer-level decorator catches arguments intended
-# to modify the behavior of Pysenbugger instances.
 def pysenbug(*bug_args, **bug_kwargs):
+
+    """ Decorate a function with another function intended to modify the
+    reliability of the decorated function by changing whether or not the base
+    function is called when the decorated function is called, or altering what
+    is returned by the decorated function.
+
+    This outer-level decorator catches and handles arguments intended to modify
+    the behavior of Pysenbugger instances, which manage state related to the
+    actual replacement of the base function.
+    """
 
     no_bug_args = False
 
@@ -50,16 +61,18 @@ def pysenbug(*bug_args, **bug_kwargs):
         unbugged_function = bug_args[0]
         no_bug_args = True
 
-    # This is the function factory that governs
-    # which form of internal function is returned,
-    # to permit decoration either with or without
-    # actually calling the decorator:
-    def pysenbug_wrapper(unbugged_function):
+    def _pysenbug_wrapper(unbugged_function):
+        """ Return a function bugged with a Pysenbugger substitution method.
+        """
 
         # This is the function that sets up the Pysenbugger
         # instance used to dynamically bug the victim's function.
         @wraps(unbugged_function)
         def actual_bugged_function_injector(*args, **kwargs):
+            """ Set up a Pysenbugger instance to handle state related to method
+            substitution, and return the result of calling that instance's
+            substitution method with all variables passed to this method.
+            """
             meddlesome_physicist = Pysenbugger(unbugged_function,
                                                *bug_args, **bug_kwargs)
             bugged_func = meddlesome_physicist.catbox
@@ -74,8 +87,8 @@ def pysenbug(*bug_args, **bug_kwargs):
         return actual_bugged_function_injector
 
     if no_bug_args:
-        return pysenbug_wrapper(unbugged_function)
+        return _pysenbug_wrapper(unbugged_function)
 
     # If the decorator is called with parameters,
     # then it doesn't also need to be called here.
-    return pysenbug_wrapper
+    return _pysenbug_wrapper
