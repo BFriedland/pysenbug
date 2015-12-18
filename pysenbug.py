@@ -62,11 +62,14 @@ def pysenbug(*bug_args, **bug_kwargs):
         no_bug_args = True
 
     def _pysenbug_wrapper(unbugged_function):
-        """ Return a function bugged with a Pysenbugger substitution method.
+        """ Return a function bugged with a Pysenbugger substitution method
+        without calling it.
         """
 
-        # This is the function that sets up the Pysenbugger
-        # instance used to dynamically bug the victim's function.
+        # This intermediate level function wrapping is required due to the need
+        # to distinguish between a decorator used with arguments and one
+        # without, combined with the necessity of accepting a separate set of
+        # arguments when the bugged function itself is called.
         @wraps(unbugged_function)
         def actual_bugged_function_injector(*args, **kwargs):
             """ Set up a Pysenbugger instance to handle state related to method
