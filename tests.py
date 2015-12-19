@@ -4,23 +4,27 @@ from pysenbug import pysenbug
 
 
 class TestPysenbug(unittest.TestCase):
-    """ Due to the intentionally unpredictable nature of some of pysenbug's
+    """ Subclass unittest's TestCase in order to unit test the pysenbug module.
+
+    Due to the intentionally unpredictable nature of some of pysenbug's
     use cases, there is no simple deterministic test that will always
-    conclusively prove that the function worked as intended in a finite number
+    conclusively prove that the decorator worked as intended in a finite number
     of steps; though for sufficiently large test cases, it is exceedingly
     unlikely the results would fall outside of calculable probability
     distributions.
 
     In the interest of making dependable tests, all default tests have been
-    designed to be deterministic in nature.
+    designed to test only deterministic execution paths.
 
     It is possible to create tests that determine if pysenbug is working as
-    expected even when random functions are used using scary, highly invasive code inspection.
-    (This feature will be implemented pending ethics committee review.)
+    expected even when `probability_function`s with probabilistic behavior are
+    used, but this can only be accomplished by calling upon scary, highly
+    invasive code inspection techniques.
+    (This feature would only be implemented pending ethics committee review.)
     """
 
     def test_unparameterized_decorator(self):
-        """ Use the shotgun approach to check for random exceptions. """
+        """ Use the shotgun approach to check for adventitious exceptions. """
 
         for each_iteration in range(0, 100):
 
